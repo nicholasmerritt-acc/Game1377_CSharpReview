@@ -9,6 +9,8 @@ public class TextBasedAdventure : MonoBehaviour
         public TileType Type;
         public string Description;
         public bool WasVisited;
+        public int TeleportToRow;
+        public int TeleportToColumn;
     }
 
     public enum TileType
@@ -18,6 +20,8 @@ public class TextBasedAdventure : MonoBehaviour
         Item,
         Enemy,
         Exit,
+        Blockade,
+        Teleporter
     }
 
     private Room[,] dungeon =
@@ -35,6 +39,12 @@ public class TextBasedAdventure : MonoBehaviour
                        Type = TileType.Empty,
                        Description = "Pink emanates from this room almost aggressively. There are gemstones lining the walls that glow and pulse with an intense energy.",
                      },
+            new Room { Name = "Red Teleporter #1",
+                       Type = TileType.Teleporter,
+                       Description = "A large steel teleporter glows and hums and crackles with red electricity.",
+                       TeleportToRow = 3,
+                       TeleportToColumn = 0
+                     },
         },
 
         {
@@ -49,6 +59,10 @@ public class TextBasedAdventure : MonoBehaviour
             new Room { Name = "Iron Gate",
                        Type = TileType.Exit,
                        Description = "There is an imposing steel gate up ahead that is slightly ajar. It looks incredibly heavy, but you might be able to squeeze through the opening.",
+                     },
+            new Room { Name = "Empty Room",
+                       Type = TileType.Empty,
+                       Description = "",
                      },
         },
 
@@ -65,6 +79,32 @@ public class TextBasedAdventure : MonoBehaviour
                        Type = TileType.Item,
                        Description = "A large, empty throne looms towards the back of this room. There are several treasure chests flanking it, which must belong to some absent royalty. Better get them quickly and escape before they return.",
                      },
+            new Room { Name = "Empty Room",
+                       Type = TileType.Empty,
+                       Description = "",
+                     },
+        },
+
+
+        {
+            new Room { Name = "Red Teleporter #2",
+                       Type = TileType.Teleporter,
+                       Description = "A large steel teleporter glows and hums and crackles with red electricity.",
+                       TeleportToRow = 0,
+                       TeleportToColumn = 3
+                     },
+            new Room { Name = "Impassable Wall",
+                       Type = TileType.Blockade,
+                       Description = "A sturdy wall blocks your path.",
+                     },
+            new Room { Name = "Empty Room",
+                       Type = TileType.Empty,
+                       Description = "",
+                     },
+            new Room { Name = "Empty Room",
+                       Type = TileType.Empty,
+                       Description = "",
+                     },
         },
 
     };
@@ -78,7 +118,27 @@ public class TextBasedAdventure : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        VerifyTeleportersMatch();
         OutputTileInformation();
+    }
+
+    /// <summary>
+    /// Guarantee that there are an even number of teleporters in the level
+    /// </summary>
+    private void VerifyTeleportersMatch()
+    {
+        int numberOfTeleporters = 0;
+        foreach (Room room in dungeon)
+        {
+            if (room.Type == TileType.Teleporter)
+            {
+                numberOfTeleporters++;
+            }
+        }
+        if (numberOfTeleporters % 2 != 0)
+        {
+            Debug.LogError("Invalid number of teleporters! Expected dungeon grid to have an even number to function properly. Found: " + numberOfTeleporters);
+        }
     }
 
     // Update is called once per frame
@@ -102,6 +162,10 @@ public class TextBasedAdventure : MonoBehaviour
         PlayerTakeDamage(enemyDamage);
     }
 
+    /// <summary>
+    /// player takes some amount of damage and potentially dies
+    /// </summary>
+    /// <param name="damage"></param>
     private void PlayerTakeDamage(int damage)
     {
         playerHealth -= damage;
@@ -136,9 +200,9 @@ public class TextBasedAdventure : MonoBehaviour
     /// </summary>
     private void OutputTileInformation()
     {
-        Debug.Log("You are in: " + dungeon[playerRow,playerColumn].Name);
+        Debug.Log("You are in: " + GetCurrentLocation().Name);
 
-        switch (dungeon[playerRow, playerColumn].Type)
+        switch (GetCurrentLocation().Type)
         {
             case TileType.Empty:
                 Debug.Log("There is nothing here.");
@@ -148,7 +212,7 @@ public class TextBasedAdventure : MonoBehaviour
                 EncounterEnemy();
                 break;
             case TileType.Item:
-                if (dungeon[playerRow, playerColumn].WasVisited)
+                if (GetCurrentLocation().WasVisited)
                 {
                     Debug.Log("You have already collected the item that was here.");
                 } 
@@ -161,15 +225,21 @@ public class TextBasedAdventure : MonoBehaviour
             case TileType.Exit:
                 Debug.Log("You see a way out");
                 break;
+            case TileType.Blockade:
+                Debug.Log("The way is blocked. Wait. How did you get here?");
+                break;
+            case TileType.Teleporter:
+                Debug.Log("You see a teleporter");
+                break;
             default:
                 Debug.LogError("Invalid TileType");
                 break;
         }
 
-        if (!dungeon[playerRow, playerColumn].WasVisited)
+        if (!GetCurrentLocation().WasVisited)
         {
             Look();
-            dungeon[playerRow, playerColumn].WasVisited = true;
+            GetCurrentLocation().WasVisited = true;
         }
     }
 
@@ -180,14 +250,14 @@ public class TextBasedAdventure : MonoBehaviour
     /// <param name="newColumn"></param>
     private void SetPlayerPosition(int newRow, int newColumn)
     {
-        if (IsInBounds(newRow, newColumn))
+        if (IsInBounds(newRow, newColumn, out string errorMessage))
         {
             playerRow = newRow;
             playerColumn = newColumn;
         }
         else
         {
-            Debug.Log("Can't go that way");
+            Debug.Log(errorMessage);
         }
     }
 
@@ -197,42 +267,65 @@ public class TextBasedAdventure : MonoBehaviour
     /// <param name="newRow">attempted row position</param>
     /// <param name="newColumn">attempted column position</param>
     /// <returns></returns>
-    private bool IsInBounds(int newRow, int newColumn)
+    private bool IsInBounds(int newRow, int newColumn, out string errorMessage)
     {
-        return newRow >= 0 && newRow < dungeon.GetLength(0) && newColumn >= 0 && newColumn < dungeon.GetLength(1);
+        if (newRow < 0 || newRow >= dungeon.GetLength(0) || newColumn < 0 || newColumn >= dungeon.GetLength(1))
+        {
+            errorMessage = "Can't go that way!";
+            return false;
+        } 
+        else if (dungeon[newRow, newColumn].Type == TileType.Blockade)
+        {
+            errorMessage = dungeon[newRow, newColumn].Description;
+            return false;
+        }
+        else
+        {
+            errorMessage = "";
+            return true;
+        }
+
     }
 
     /// <summary>
     /// Handles player's input and sets potential new position in the filenames array
     /// </summary>
-    /// <param name="newRow1">new row position</param>
-    /// <param name="newColumn1">new column position</param>
+    /// <param name="newRow">new row position</param>
+    /// <param name="newColumn">new column position</param>
     /// <returns>true if a key (that we care about) was pressed this frame</returns>
-    private bool HandleInput(out int newRow1, out int newColumn1)
+    private bool HandleInput(out int newRow, out int newColumn)
     {
         bool hasPressedKey = true;
-        newRow1 = playerRow;
-        newColumn1 = playerColumn;
+        newRow = playerRow;
+        newColumn = playerColumn;
 
         if (Input.GetKeyDown(KeyCode.S))
         {
-            newRow1++;
+            newRow++;
         }
         else if (Input.GetKeyDown(KeyCode.W))
         {
-            newRow1--;
+            newRow--;
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
-            newColumn1++;
+            newColumn++;
         }
         else if (Input.GetKeyDown(KeyCode.A))
         {
-            newColumn1--;
+            newColumn--;
         }
         else if (Input.GetKeyDown(KeyCode.E))
         {
             Look();
+        }
+        else if (Input.GetKeyDown(KeyCode.H))
+        {
+            OutputHelp();
+        }
+        else if (Input.GetKeyDown(KeyCode.T))
+        {
+            Teleport(out newRow, out newColumn);
         }
         else
         {
@@ -248,5 +341,40 @@ public class TextBasedAdventure : MonoBehaviour
     private void Look()
     {
         Debug.Log(dungeon[playerRow, playerColumn].Description);
+    }
+
+    /// <summary>
+    /// display a help message with all available commands / button presses
+    /// </summary>
+    private void OutputHelp()
+    {
+        Debug.Log("WASD to move, E to Look, T to Teleport");
+    }
+
+    /// <summary>
+    /// return a reference to the room the player is currently located in
+    /// </summary>
+    /// <returns></returns>
+    private ref Room GetCurrentLocation()
+    {
+        return ref dungeon[playerRow, playerColumn];
+    }
+
+    /// <summary>
+    /// attempt to teleport. if this square is not a teleporter, we should not move.
+    /// </summary>
+    /// <param name="newRow"></param>
+    /// <param name="newColumn"></param>
+    private void Teleport(out int newRow, out int newColumn)
+    {
+        //TODO bounds constants
+        newRow = -1;
+        newColumn = -1;
+
+        if (GetCurrentLocation().Type == TileType.Teleporter)
+        {
+            newRow = GetCurrentLocation().TeleportToRow;
+            newColumn = GetCurrentLocation().TeleportToColumn;
+        }
     }
 }
