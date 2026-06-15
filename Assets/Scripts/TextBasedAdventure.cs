@@ -125,6 +125,7 @@ public class TextBasedAdventure : MonoBehaviour
     void Start()
     {
         VerifyTeleportersMatch();
+        OutputHelp();
         OutputTileInformation();
     }
 
@@ -330,7 +331,7 @@ public class TextBasedAdventure : MonoBehaviour
         {
             Look();
         }
-        else if (Input.GetKeyDown(KeyCode.H))
+        else if (Input.GetKeyDown(KeyCode.Q))
         {
             OutputHelp();
         }
@@ -359,7 +360,9 @@ public class TextBasedAdventure : MonoBehaviour
     /// </summary>
     private void OutputHelp()
     {
-        Debug.Log("WASD to move, E to Look, T to Teleport");
+        Debug.Log("Welcome to the Dungeon.");
+        Debug.Log("Use WASD to move, E to look around your current room, T to Teleport, and Q to display this help message again.");
+        Debug.Log("Onwards, adventurer!");
     }
 
     /// <summary>
