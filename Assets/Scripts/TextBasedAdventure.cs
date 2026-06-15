@@ -45,6 +45,10 @@ public class TextBasedAdventure : MonoBehaviour
                        TeleportToRow = 3,
                        TeleportToColumn = 0
                      },
+            new Room { Name = "Very Empty Room",
+                       Type = TileType.Empty,
+                       Description = "There is absolutely nothing here. Staring into the void stings your eyes and eats at your soul. Better move on quickly.",
+                     },
         },
 
         {
@@ -60,9 +64,13 @@ public class TextBasedAdventure : MonoBehaviour
                        Type = TileType.Exit,
                        Description = "There is an imposing steel gate up ahead that is slightly ajar. It looks incredibly heavy, but you might be able to squeeze through the opening.",
                      },
-            new Room { Name = "Empty Room",
+            new Room { Name = "Very Empty Room",
                        Type = TileType.Empty,
                        Description = "There is absolutely nothing here. Staring into the void stings your eyes and eats at your soul. Better move on quickly.",
+                     },
+            new Room { Name = "Raven's Hoard",
+                       Type = TileType.Item,
+                       Description = "Shiny items litter the floor. So many they hurt your eyes a bit. Better pick just one and move on before the raven returns.",
                      },
         },
 
@@ -82,6 +90,10 @@ public class TextBasedAdventure : MonoBehaviour
             new Room { Name = "Fred's Room",
                        Type = TileType.Empty,
                        Description = "Scattered children's toys make it apparent that this was once a child's room. The child is nowhere to be seen, though. You hear a very faint giggling from somewhere behind you.",
+                     },
+            new Room { Name = "Goblin Hovel",
+                       Type = TileType.Empty,
+                       Description = "A filthy goblin hut stands before you. It smells so bad, you don't even consider going inside.",
                      },
         },
 
@@ -104,6 +116,33 @@ public class TextBasedAdventure : MonoBehaviour
             new Room { Name = "Fountain of Decrepitude",
                        Type = TileType.Enemy,
                        Description = "The brackish water looks and smells terrible. You are not sure why, but you touch a finger to it and immediately regret it. Ow.",
+                     },
+            new Room { Name = "Impassable Sheet of Ice",
+                       Type = TileType.Blockade,
+                       Description = "A huge impenetrable wall of ice stands between you and your destination. No getting through here.",
+                     },
+        },
+
+                {
+            new Room { Name = "Jewel Room",
+                       Type = TileType.Item,
+                       Description = "There is a large clear case in the center of the room. Seems like it might contain a precious stone...",
+                     },
+            new Room { Name = "Very Large, Empty Room",
+                       Type = TileType.Empty,
+                       Description = "There is absolutely nothing here. Lots and lots of nothing. Kind of impressive, really, just how much nothing is in this room.",
+                     },
+            new Room { Name = "Goblin Berserker",
+                       Type = TileType.Enemy,
+                       Description = "A goblin wearing a hat with two horns and holding an ax in each hand sprints at you, screaming! AHHHHH!",
+                     },
+            new Room { Name = "Very Strange Room",
+                       Type = TileType.Enemy,
+                       Description = "The air in this room is tinged with evil. You feel your life force being drained by some malevolent unseen entity. Better run.",
+                     },
+            new Room { Name = "Impassable Iron Wall",
+                       Type = TileType.Blockade,
+                       Description = "This iron wall looks like it was constructed by very serious dwarven blacksmiths. There is absolutely no way you are getting past.",
                      },
         },
 
@@ -276,7 +315,7 @@ public class TextBasedAdventure : MonoBehaviour
     /// <returns>true if we are allowed to travel to that new tile</returns>
     private bool IsInBounds(int newRow, int newColumn, out string errorMessage)
     {
-        if (newRow == FAILED_TELEPORT_COORDINATE || newColumn == FAILED_TELEPORT_COORDINATE)
+        if (newRow == FAILED_TELEPORT_COORDINATE && newColumn == FAILED_TELEPORT_COORDINATE)
         {
             errorMessage = "Can't teleport here! Find a teleporter!";
             return false;
@@ -311,31 +350,31 @@ public class TextBasedAdventure : MonoBehaviour
         newRow = playerRow;
         newColumn = playerColumn;
 
-        if (Input.GetKeyDown(KeyCode.S))
+        if (Input.GetButtonDown("Down"))
         {
             newRow++;
         }
-        else if (Input.GetKeyDown(KeyCode.W))
+        else if (Input.GetButtonDown("Up"))
         {
             newRow--;
         }
-        else if (Input.GetKeyDown(KeyCode.D))
+        else if (Input.GetButtonDown("Right"))
         {
             newColumn++;
         }
-        else if (Input.GetKeyDown(KeyCode.A))
+        else if (Input.GetButtonDown("Left"))
         {
             newColumn--;
         }
-        else if (Input.GetKeyDown(KeyCode.E))
+        else if (Input.GetButtonDown("Look"))
         {
             Look();
         }
-        else if (Input.GetKeyDown(KeyCode.Q))
+        else if (Input.GetButtonDown("Help"))
         {
             OutputHelp();
         }
-        else if (Input.GetKeyDown(KeyCode.T))
+        else if (Input.GetButtonDown("Teleport"))
         {
             Teleport(out newRow, out newColumn);
         }
