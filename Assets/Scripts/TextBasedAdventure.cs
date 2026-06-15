@@ -24,7 +24,7 @@ public class TextBasedAdventure : MonoBehaviour
         Teleporter
     }
 
-    private Room[,] dungeon =
+    private static Room[,] dungeon =
     {
         {
             new Room { Name = "Dark Cave",
@@ -62,7 +62,7 @@ public class TextBasedAdventure : MonoBehaviour
                      },
             new Room { Name = "Empty Room",
                        Type = TileType.Empty,
-                       Description = "",
+                       Description = "There is absolutely nothing here. Staring into the void stings your eyes and eats at your soul. Better move on quickly.",
                      },
         },
 
@@ -79,9 +79,9 @@ public class TextBasedAdventure : MonoBehaviour
                        Type = TileType.Item,
                        Description = "A large, empty throne looms towards the back of this room. There are several treasure chests flanking it, which must belong to some absent royalty. Better get them quickly and escape before they return.",
                      },
-            new Room { Name = "Empty Room",
+            new Room { Name = "Fred's Room",
                        Type = TileType.Empty,
-                       Description = "",
+                       Description = "Scattered children's toys make it apparent that this was once a child's room. The child is nowhere to be seen, though. You hear a very faint giggling from somewhere behind you.",
                      },
         },
 
@@ -97,17 +97,23 @@ public class TextBasedAdventure : MonoBehaviour
                        Type = TileType.Blockade,
                        Description = "A sturdy wall blocks your path.",
                      },
-            new Room { Name = "Empty Room",
-                       Type = TileType.Empty,
-                       Description = "",
+            new Room { Name = "Fountain of Youth",
+                       Type = TileType.Item,
+                       Description = "A rejuvenating spring makes you feel ten years younger. Ahhhhhh. Those bubbles are nice.",
                      },
-            new Room { Name = "Empty Room",
-                       Type = TileType.Empty,
-                       Description = "",
+            new Room { Name = "Fountain of Decrepitude",
+                       Type = TileType.Enemy,
+                       Description = "The brackish water looks and smells terrible. You are not sure why, but you touch a finger to it and immediately regret it. Ow.",
                      },
         },
 
     };
+
+    private int DUNGEON_LOWER_ROW_BOUND = 0;
+    private int DUNGEON_UPPER_ROW_BOUND = dungeon.GetLength(0);
+    private int DUNGEON_LOWER_COLUMN_BOUND = 0;
+    private int DUNGEON_UPPER_COLUMN_BOUND = dungeon.GetLength(1);
+    private int FAILED_TELEPORT_COORDINATE = -1;
 
     private int playerRow = 0;
     private int playerColumn = 0;
@@ -266,10 +272,15 @@ public class TextBasedAdventure : MonoBehaviour
     /// </summary>
     /// <param name="newRow">attempted row position</param>
     /// <param name="newColumn">attempted column position</param>
-    /// <returns></returns>
+    /// <returns>true if we are allowed to travel to that new tile</returns>
     private bool IsInBounds(int newRow, int newColumn, out string errorMessage)
     {
-        if (newRow < 0 || newRow >= dungeon.GetLength(0) || newColumn < 0 || newColumn >= dungeon.GetLength(1))
+        if (newRow == FAILED_TELEPORT_COORDINATE || newColumn == FAILED_TELEPORT_COORDINATE)
+        {
+            errorMessage = "Can't teleport here! Find a teleporter!";
+            return false;
+        }
+        else if (newRow < DUNGEON_LOWER_ROW_BOUND || newRow >= DUNGEON_UPPER_ROW_BOUND || newColumn < DUNGEON_LOWER_COLUMN_BOUND || newColumn >= DUNGEON_UPPER_COLUMN_BOUND)
         {
             errorMessage = "Can't go that way!";
             return false;
@@ -340,7 +351,7 @@ public class TextBasedAdventure : MonoBehaviour
     /// </summary>
     private void Look()
     {
-        Debug.Log(dungeon[playerRow, playerColumn].Description);
+        Debug.Log(GetCurrentLocation().Description);
     }
 
     /// <summary>
@@ -367,14 +378,14 @@ public class TextBasedAdventure : MonoBehaviour
     /// <param name="newColumn"></param>
     private void Teleport(out int newRow, out int newColumn)
     {
-        //TODO bounds constants
-        newRow = -1;
-        newColumn = -1;
-
         if (GetCurrentLocation().Type == TileType.Teleporter)
         {
             newRow = GetCurrentLocation().TeleportToRow;
             newColumn = GetCurrentLocation().TeleportToColumn;
+        } else
+        {
+            newRow = FAILED_TELEPORT_COORDINATE;
+            newColumn = FAILED_TELEPORT_COORDINATE;
         }
     }
 }
