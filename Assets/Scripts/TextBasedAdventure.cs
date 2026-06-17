@@ -272,7 +272,7 @@ public class TextBasedAdventure : MonoBehaviour
                 Debug.Log("You see a way out");
                 break;
             case TileType.Blockade:
-                Debug.Log("The way is blocked. Wait. How did you get here?");
+                Debug.LogError("Player should not be able to access this Blockade TileType");
                 break;
             case TileType.Teleporter:
                 Debug.Log("You see a teleporter");
@@ -312,6 +312,7 @@ public class TextBasedAdventure : MonoBehaviour
     /// </summary>
     /// <param name="newRow">attempted row position</param>
     /// <param name="newColumn">attempted column position</param>
+    /// <param name="errorMessage">message to display if we are attempting to travel out of bounds</param>
     /// <returns>true if we are allowed to travel to that new tile</returns>
     private bool IsInBounds(int newRow, int newColumn, out string errorMessage)
     {
@@ -327,6 +328,7 @@ public class TextBasedAdventure : MonoBehaviour
         } 
         else if (dungeon[newRow, newColumn].Type == TileType.Blockade)
         {
+            //we never are allowed to access a Blockade tile, so let's display its description when we attempt to travel to it and fail
             errorMessage = dungeon[newRow, newColumn].Description;
             return false;
         }
@@ -387,7 +389,7 @@ public class TextBasedAdventure : MonoBehaviour
     }
 
     /// <summary>
-    /// output the long-form description 
+    /// output the long-form description of the room we are currently in
     /// </summary>
     private void Look()
     {
@@ -400,7 +402,7 @@ public class TextBasedAdventure : MonoBehaviour
     private void OutputHelp()
     {
         Debug.Log("Welcome to the Dungeon.");
-        Debug.Log("Use WASD to move, E to look around your current room, T to Teleport, and Q to display this help message again.");
+        Debug.Log("Use WASD or arrow keys to move, E to look around your current room, T to Teleport, and Q to display this help message again.");
         Debug.Log("Onwards, adventurer!");
     }
 
