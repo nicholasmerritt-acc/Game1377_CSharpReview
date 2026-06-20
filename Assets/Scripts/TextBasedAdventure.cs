@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class TextBasedAdventure : MonoBehaviour
@@ -197,6 +198,8 @@ public class TextBasedAdventure : MonoBehaviour
     private bool isPlayerDead = false;
 
     public TMP_Text DungeonDisplayText;
+    public List<string> DungeonDisplayStrings = new();
+    private int DUNGEON_DISPLAY_LINES_LIMIT = 10;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -226,9 +229,9 @@ public class TextBasedAdventure : MonoBehaviour
 
     private void StartingMonologue()
     {
-        Display("A gnome told you long ago of a treasure, guarded by a powerful dragon, on floor 30 of this dungeon."); 
-        AddToDisplay("You have decided to make your way, slowly but surely, down the 30 floors. Good luck.");
-        AddToDisplay("Press Q for a list of commands.");
+        ClearDisplayAndLog("A gnome told you long ago of a treasure, guarded by a powerful dragon, on floor 30 of this dungeon."); 
+        Display("You have decided to make your way, slowly but surely, down the 30 floors. Good luck.");
+        Display("Press Q for a list of commands.");
     }
 
     /// <summary>
@@ -382,13 +385,13 @@ public class TextBasedAdventure : MonoBehaviour
     private void PlayerTakeDamage(int damage)
     {
         playerHealth -= damage;
-        AddToDisplay("You got hit! Your health is now " + playerHealth);
+        Display("You got hit! Your health is now " + playerHealth);
         if (playerHealth <= 0)
         {
             playerHealth = 0;
-            AddToDisplay("You are dead!");
-            AddToDisplay("GAME OVER");
-            AddToDisplay("PRESS N FOR NEW GAME");
+            Display("You are dead!");
+            Display("GAME OVER");
+            Display("PRESS N FOR NEW GAME");
             isPlayerDead = true;
         }
     }
@@ -408,7 +411,7 @@ public class TextBasedAdventure : MonoBehaviour
     private void PlayerHeal(int healAmount)
     {
         playerHealth += healAmount;
-        AddToDisplay("you got healed. health is now " + playerHealth);
+        Display("you got healed. health is now " + playerHealth);
     }
 
     /// <summary>
@@ -416,36 +419,36 @@ public class TextBasedAdventure : MonoBehaviour
     /// </summary>
     private void OutputTileInformation()
     {
-        AddToDisplay("You are in: " + GetCurrentLocation().Name);
+        Display("You are in: " + GetCurrentLocation().Name);
 
         switch (GetCurrentLocation().Type)
         {
             case TileType.Empty:
-                AddToDisplay("There is nothing here.");
+                Display("There is nothing here.");
                 break;
             case TileType.Enemy:
-                AddToDisplay("Oooo a spooky ghost");
+                Display("Oooo a spooky ghost");
                 EncounterEnemy();
                 break;
             case TileType.Item:
                 if (GetCurrentLocation().WasVisited)
                 {
-                    AddToDisplay("You have already collected the item that was here.");
+                    Display("You have already collected the item that was here.");
                 } 
                 else
                 {
-                    AddToDisplay("You see a shiny object");
+                    Display("You see a shiny object");
                     PickupItem();
                 }
                 break;
             case TileType.Exit:
-                AddToDisplay("You see a way out");
+                Display("You see a way out");
                 break;
             case TileType.Blockade:
                 Debug.LogError("Player should not be able to access this Blockade TileType");
                 break;
             case TileType.Teleporter:
-                AddToDisplay("You see a teleporter");
+                Display("You see a teleporter");
                 break;
             default:
                 Debug.LogError("Invalid TileType");
@@ -454,7 +457,7 @@ public class TextBasedAdventure : MonoBehaviour
 
         if (!GetCurrentLocation().WasVisited)
         {
-            Look();
+            OutputLongDescription();
             GetCurrentLocation().WasVisited = true;
         }
     }
@@ -470,10 +473,11 @@ public class TextBasedAdventure : MonoBehaviour
         {
             playerRow = newRow;
             playerColumn = newColumn;
+            ClearDisplayAndLog($"moved to {newRow}, {newColumn}");
         }
         else
         {
-            AddToDisplay(errorMessage);
+            Display(errorMessage);
         }
     }
 
@@ -577,6 +581,7 @@ public class TextBasedAdventure : MonoBehaviour
         }
         newRow = 0;
         newColumn = 0;
+        ClearDisplayAndLog("ASCENDING...");
     }
 
     /// <summary>
@@ -593,8 +598,8 @@ public class TextBasedAdventure : MonoBehaviour
             playerFloor++;
             if (playerFloor > 30)
             {
-                Display("You win! Wow!");
-                AddToDisplay("Press N for new game...");
+                ClearDisplayAndLog("You win! Wow!");
+                Display("Press N for new game...");
                 isPlayerDead = true;
                 return;
             }
@@ -611,6 +616,8 @@ public class TextBasedAdventure : MonoBehaviour
             newRow = playerRow;
             newColumn = playerColumn;
         }
+
+        ClearDisplayAndLog("DESCENDING...");
     }
 
     /// <summary>
@@ -618,8 +625,14 @@ public class TextBasedAdventure : MonoBehaviour
     /// </summary>
     private void Look()
     {
+        ClearDisplayAndLog("Looking...");
+        OutputLongDescription();
+    }
+
+    private void OutputLongDescription()
+    {
         Display($"(currently on floor {playerFloor}, row {playerRow}, column {playerColumn})");
-        AddToDisplay(GetCurrentLocation().Description);
+        Display(GetCurrentLocation().Description);
     }
 
     /// <summary>
@@ -627,13 +640,13 @@ public class TextBasedAdventure : MonoBehaviour
     /// </summary>
     private void OutputHelp()
     {
-        Display("Use WASD or arrow keys to move.");
-        AddToDisplay("Use E to Examine your current room.");
-        AddToDisplay("Use T to Teleport (when on a teleporter only).");
-        AddToDisplay("Use Z to Descend (when on an exit)");
-        AddToDisplay("Use X to Ascend anytime.");
-        AddToDisplay("Use Q to display this help message again.");
-        AddToDisplay("Onwards, adventurer!");
+        ClearDisplayAndLog("Use WASD or arrow keys to move.");
+        Display("Use E to Examine your current room.");
+        Display("Use T to Teleport (when on a teleporter only).");
+        Display("Use Z to Descend (when on an exit)");
+        Display("Use X to Ascend anytime.");
+        Display("Use Q to display this help message again.");
+        Display("Onwards, adventurer!");
     }
 
     /// <summary>
@@ -652,7 +665,7 @@ public class TextBasedAdventure : MonoBehaviour
     /// <param name="newColumn"></param>
     private void Teleport(out int newRow, out int newColumn)
     {
-        Display("Attempting to teleport...");
+        ClearDisplayAndLog("Attempting to teleport...");
         if (GetCurrentLocation().Type == TileType.Teleporter)
         {
             newRow = GetCurrentLocation().TeleportToRow;
@@ -665,19 +678,38 @@ public class TextBasedAdventure : MonoBehaviour
     }
 
     /// <summary>
-    /// clears and logs to DungeonDisplay
+    /// clears DungeonDisplay, and sets it to have only 1 entry
+    /// TODO remove
     /// </summary>
-    private void Display(string displayMe)
+    private void ClearDisplayAndLog(string displayMe)
     {
-        DungeonDisplayText.text = displayMe;
+        Debug.Log("CLEARING... + " + displayMe);
+        DungeonDisplayStrings.Clear();
+        DungeonDisplayStrings.Add(displayMe);
+        DisplayDungeonDisplay();
     }
 
     /// <summary>
     /// appends the string to the dungeon display text
+    /// if the display text is too long, "scrolls" it upwards
     /// </summary>
     /// <param name="displayMe"></param>
-    private void AddToDisplay(string displayMe)
+    private void Display(string displayMe)
     {
-        DungeonDisplayText.text += "\n" + displayMe;
+        Debug.Log(displayMe);
+        DungeonDisplayStrings.Add(displayMe);
+        DisplayDungeonDisplay();
+    }
+
+    /// <summary>
+    /// display our entire string buffer on the screen, in the proper order
+    /// </summary>
+    private void DisplayDungeonDisplay()
+    {
+        while (DungeonDisplayStrings.Count > DUNGEON_DISPLAY_LINES_LIMIT)
+        {
+            DungeonDisplayStrings.RemoveAt(0);
+        }
+        DungeonDisplayText.text = DungeonDisplayStrings.ToSeparatedString("\n");
     }
 }
