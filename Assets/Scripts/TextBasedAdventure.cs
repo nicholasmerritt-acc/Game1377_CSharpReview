@@ -24,6 +24,9 @@ public class TextBasedAdventure : MonoBehaviour
         Teleporter
     }
 
+    /// <summary>
+    /// Grid of rooms. make it static so the bounds are constants
+    /// </summary>
     private static Room[,] dungeon =
     {
         {
@@ -169,6 +172,9 @@ public class TextBasedAdventure : MonoBehaviour
         OutputTileInformation();
     }
 
+    /// <summary>
+    /// Introduction to the game that we should play whenever starting a new game
+    /// </summary>
     private void WelcomeMonologue()
     {
         Debug.Log("A gnome told you long ago of a treasure, guarded by a powerful dragon, on floor 30 of this dungeon.");
@@ -209,7 +215,7 @@ public class TextBasedAdventure : MonoBehaviour
     }
 
     /// <summary>
-    /// player has entered a tile where there is an enemy. this should happen every time the player enters the tile
+    /// Player has entered a tile where there is an enemy. this should happen every time the player enters the tile
     /// </summary>
     private void EncounterEnemy()
     {
@@ -217,22 +223,23 @@ public class TextBasedAdventure : MonoBehaviour
     }
 
     /// <summary>
-    /// player takes some amount of damage and potentially dies
+    /// Player takes some amount of damage and potentially dies
     /// </summary>
     /// <param name="damage"></param>
     private void PlayerTakeDamage(int damage)
     {
         playerHealth -= damage;
-        Debug.Log("you got hit. your health is now " + playerHealth);
         if (playerHealth <= 0)
         {
             playerHealth = 0;
-            Debug.Log("you are dead");
+            Debug.Log("You are dead!");
         }
+
+        Debug.Log("You got hit. Your health is now " + playerHealth);
     }
 
     /// <summary>
-    /// player has entered a tile where there is an item. this should happen once, the first time we visit the tile
+    /// Player has entered a tile where there is an item. this should happen once, the first time we visit the tile
     /// </summary>
     private void PickupItem()
     {
@@ -240,17 +247,17 @@ public class TextBasedAdventure : MonoBehaviour
     }
 
     /// <summary>
-    /// there is no max health, so this will add health to the player no matter what.
+    /// There is no max health, so this will add health to the player no matter what.
     /// </summary>
     /// <param name="healAmount"></param>
     private void PlayerHeal(int healAmount)
     {
         playerHealth += healAmount;
-        Debug.Log("you got healed. health is now " + playerHealth);
+        Debug.Log("You got healed. Your health is now " + playerHealth);
     }
 
     /// <summary>
-    /// print which tile we are in, as well as long description if we have not visited before
+    /// Output which tile we are in, as well as long description if we have not visited this tile before
     /// </summary>
     private void OutputTileInformation()
     {
@@ -298,7 +305,7 @@ public class TextBasedAdventure : MonoBehaviour
     }
 
     /// <summary>
-    /// set's a player's grid position in our 2d dungeon, making sure the new position is within the correct bounds
+    /// Set's a player's grid position in our 2d dungeon, making sure the new position is within the correct bounds
     /// </summary>
     /// <param name="newRow"></param>
     /// <param name="newColumn"></param>
@@ -316,7 +323,7 @@ public class TextBasedAdventure : MonoBehaviour
     }
 
     /// <summary>
-    /// is this tile in bounds of our 2d dungeon grid?
+    /// Is this tile in bounds of our 2d dungeon grid?
     /// </summary>
     /// <param name="newRow">attempted row position</param>
     /// <param name="newColumn">attempted column position</param>
@@ -353,7 +360,7 @@ public class TextBasedAdventure : MonoBehaviour
     /// </summary>
     /// <param name="newRow">new row position</param>
     /// <param name="newColumn">new column position</param>
-    /// <returns>true if a key (that we care about) was pressed this frame</returns>
+    /// <returns>true if a valid key was pressed this frame</returns>
     private bool HandleInput(out int newRow, out int newColumn)
     {
         bool hasPressedKey = true;
@@ -386,7 +393,7 @@ public class TextBasedAdventure : MonoBehaviour
         }
         else if (Input.GetButtonDown("Teleport"))
         {
-            Teleport(out newRow, out newColumn);
+            TryTeleport(out newRow, out newColumn);
         }
         else
         {
@@ -397,7 +404,7 @@ public class TextBasedAdventure : MonoBehaviour
     }
 
     /// <summary>
-    /// output the long-form description of the room we are currently in
+    /// Output the long-form description of the room we are currently in
     /// </summary>
     private void Look()
     {
@@ -405,7 +412,7 @@ public class TextBasedAdventure : MonoBehaviour
     }
 
     /// <summary>
-    /// display a help message with all available commands / button presses
+    /// Output a help message with all valid commands / button presses
     /// </summary>
     private void OutputHelp()
     {
@@ -414,7 +421,7 @@ public class TextBasedAdventure : MonoBehaviour
     }
 
     /// <summary>
-    /// return a reference to the room the player is currently located in
+    /// Return a reference to the room the player is currently located in
     /// </summary>
     /// <returns></returns>
     private ref Room GetCurrentLocation()
@@ -423,11 +430,11 @@ public class TextBasedAdventure : MonoBehaviour
     }
 
     /// <summary>
-    /// attempt to teleport. if this square is not a teleporter, we should not move.
+    /// Attempt to teleport. if this square is not a teleporter, we should not move.
     /// </summary>
     /// <param name="newRow"></param>
     /// <param name="newColumn"></param>
-    private void Teleport(out int newRow, out int newColumn)
+    private void TryTeleport(out int newRow, out int newColumn)
     {
         if (GetCurrentLocation().Type == TileType.Teleporter)
         {
